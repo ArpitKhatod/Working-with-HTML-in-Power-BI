@@ -1,0 +1,95 @@
+Email Dynamic Text = 
+// all measures used
+Var CurrentMonth = FORMAT(SELECTEDVALUE('Gas Date Month Table'[Month Year]),"MMM-YY")
+var Total_Miss = DIVIDE(ROUND([Total D0 Demand Miss (thn)],-3),1000)
+Var Total_demand_DO =  
+   FORMAT( ABS(
+        DIVIDE([Total D0 Demand Miss (thn)],[Portfolio SND (Model)],BLANK())
+        ),"0.00%")
+VAR Above_Below_CurrentMonth = IF(Total_Miss >0,"above","below")
+
+-------------
+
+Var NDM_Logic =
+FORMAT(
+    ABS(
+        DIVIDE( VALUE([NDM DF (Model)]) - VALUE([NDM SND (M)]), VALUE([NDM SND (M)]),
+            BLANK()   )
+        ),  "0.00%"
+)
+
+Var NDM_Logic_Base = 
+DIVIDE( VALUE([NDM DF (Model)]) - VALUE([NDM SND (M)]), VALUE([NDM SND (M)]),
+            BLANK())
+Var NDM_Above_Below =  if(NDM_Logic_Base >0,"above","below")
+
+var NDM_Total_Miss = DIVIDE(ROUND([NDM D0 Weather Demand Miss (Thn)],-3),1000)
+
+-------------
+Var DM = FORMAT(ABS(DIVIDE([DM D0 Weather Demand Miss (thn)],[DM SND (M)])),"0.00%")
+Var DM_Logc_Base = DIVIDE([DM D0 Weather Demand Miss (thn)],[DM SND (M)])
+VAR DM_Above_Below =  IF(DM_Logc_Base >0, "above","below")
+var DM_Total_Miss = DIVIDE(ROUND([DM D0 Weather Demand Miss (thn)],-3),1000)
+
+
+-------------
+
+Var Demand_change =  [Demand (th)] - [Demand Change k th Controls View yesterday]
+VAR Increase_Decrease = IF(Demand_change<0,"decreased","increased")
+var Expected_Demand = ABS(ROUND(Demand_change/1000,0))
+
+
+-------------
+
+Var MaxDate = SELECTEDVALUE('Reporting Date'[Date])
+Var Current_CWV  = CALCULATE(SUM('Weather Model Summary'[Current CWV Weighted]),'Weather Model Summary'[Date] = MaxDate)
+Var Current_SNT = CALCULATE(SUM('Weather Model Summary'[CWV SN]),'Weather Model Summary'[Date] = MaxDate)
+Var Differnce = Current_CWV - Current_SNT
+VAR Output = ROUND(ABS(Differnce),1)
+Var CWV_SNT_Above_Below = IF(Differnce>0,"above","below")
+
+-----------------------------
+VAR ContentTyp = 
+"<!DOCTYPE html>
+<html>
+<body style=""font-family: Arial, sans-serif; font-size: 10px; line-height: 1;"">
+    <p>
+        Currently,%Currrent_Month% demand is expected to out-turn <strong> %Total_demand_DO% %Above_Below_CurrentMonth% normal</strong>. (%Total_Miss%k therms), consisting of:
+        <br> - NDM demand is expected to out-turn <strong>%NDM_Logic% %NDM_Above_Below% normal</strong>. (%NDM_Total_Miss%k therms.)
+        <br> - DM demand is expected to out-turn <strong>%DM% %DM_Above_Below% normal</strong>. (%DM_Total_Miss%k therms.)</p>
+    <p>Total estimated consumption for %Currrent_Month% has <strong>%Increase_Decrease% by %Expected_Demand%k</strong> since yesterday.</p
+    <p>The portfolio weighted temperature index (CWV) for today is %Output% deg C %CWV_SNT_Above_Below% seasonal normal.</p>
+</body>
+</html>"
+
+RETURN
+SUBSTITUTE(
+SUBSTITUTE(
+SUBSTITUTE(
+SUBSTITUTE(
+SUBSTITUTE(
+SUBSTITUTE(
+SUBSTITUTE(
+SUBSTITUTE(
+SUBSTITUTE(
+SUBSTITUTE(
+SUBSTITUTE(
+    SUBSTITUTE(
+        SUBSTITUTE(
+            SUBSTITUTE(
+        ContentTyp,
+        "%Currrent_Month%",CurrentMonth),
+        "%Total_demand_DO%",Total_demand_DO),
+        "%Total_Miss%",Total_Miss),
+        "%Above_Below_CurrentMonth%",Above_Below_CurrentMonth),
+        "%NDM_Logic%",NDM_Logic),
+        "%NDM_Above_Below%",NDM_Above_Below),
+        "%NDM_Total_Miss%",NDM_Total_Miss),
+        "%DM%",DM),
+        "%DM_Above_Below%",DM_Above_Below),
+        "%DM_Total_Miss%",DM_Total_Miss),
+        "%Increase_Decrease%",Increase_Decrease),
+        "%Expected_Demand%",Expected_Demand),
+        "%Output%",Output),
+        "%CWV_SNT_Above_Below%",CWV_SNT_Above_Below
+)
