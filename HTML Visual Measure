@@ -1,0 +1,236 @@
+Email = 
+Var Balancing_Cost_p_thn = FORMAT(DIVIDE([Balancing Cost P&L £],[Demand (th)])*100,"#,0.00")
+Var Bal_Pre_Day_Change = FORMAT([Balancing Cost P&L Change %]*100 ,"0.00") // Need to Review
+Var Bal_Cost_Pounds =  FORMAT([Balancing Cost P&L £],"#,0")
+Var Change_PL = FORMAT([Balancing Cost P&L £ Change],"#,0")
+Var SND = FORMAT([Portfolio SND (Model)],"#,0")
+Var NDM_D0_WeatherDemand_Miss = FORMAT([NDM D0 Weather Demand Miss (Thn)],"#,0")
+Var DM_D0_WeatherDemand_Mis = FORMAT([DM D0 Weather Demand Miss (thn)],"#,0")
+var Total_D0 = FORMAT([Total D0 Demand Miss (thn)],"#,0")
+var ExpectedDemand = FORMAT([Demand (th)],"#,0") 
+Var Finance_COG_Validation = FORMAT([Finance COG Total Purchased D0 Volume] -[Demand (th)],"#,0") 
+Var UIG_Demand  = FORMAT([UIG Volume],"#,0")
+VAR Reporting_Date = FORMAT(SELECTEDVALUE('Reporting Date'[Date]),"DD-MMM-YYYY")
+Var Forecast_Option_Payout= IF(ISBLANK([Forecast Option Payout]),0,Format([Forecast Option Payout],"#,0"))
+var Balancing_cost_with_Option_payout = FORMAT([Balancing Cost P&L £] + Forecast_Option_Payout,"#,0")
+Var Balancing_cost_with_Option_payout_Percentage = FORMAT(DIVIDE(Balancing_cost_with_Option_payout*100,ExpectedDemand,0),"#,0.00")
+var  Net_PL_Inc_Balancing_Fee_Budget = FORMAT([Net P&l Inc Balancing Fee Budget],"#,0")
+VAR pth = FORMAT(DIVIDE(Net_PL_Inc_Balancing_Fee_Budget*100,ExpectedDemand,0),"0.00")
+Var ChangeFromYesterday = FORMAT(0,"#,0")
+
+
+
+
+//---------------- Email Template
+
+Var Email_Body_Template = 
+
+"<!DOCTYPE html>
+<html>
+
+<head>
+  <style>
+    table {
+      font-family: Arial, sans-serif;
+      border-collapse: collapse;
+      width: 100%;
+      border: 2px solid black; /* Set outside border thickness and color */
+      font-size: 14px; /* Reduced font size */
+    }
+
+    th, td {
+      border: 1px solid #dddddd;
+      text-align: left;
+      padding: 1px;
+    }
+
+    th {
+     background-color: #333; /* Darker background color for headers */
+      color: white; /* White text for headers */
+    }
+
+    h2 {
+      font-size: 16px; /* Reduced font size for the header */
+    }
+
+    .negative {
+      color: red;
+    }
+
+    .bold-line {
+      border-bottom: 2px solid #000;
+    }
+  </style>
+
+  <script>
+    document.addEventListener(DOMContentLoaded, function () {
+      var cells = document.querySelectorAll(td);
+      cells.forEach(function (cell) {
+        var value = parseFloat(cell.innerText.replace(/[^0-9.-]+/g,"")); // Extract numeric value
+        if (!isNaN(value) && value < 0) {
+          cell.classList.add(negative);
+        }
+      });
+    });
+  </script>
+</head>
+
+<body>
+
+  <h2><strong>Balancing Cost Summary : %Date%</h2>
+
+
+  <table>
+    <tr>
+      <th>Category</th>
+      <th>Value</th>
+    </tr>
+    <tr>
+      <td>Balancing Cost (p/thm)</td>
+      <td>%Balancing_Cost_(p/thm)%</td>
+    </tr>
+    <tr>
+      <td>Change from yesterday</td>
+      <td>%Change_from_yesterday_Percentage%</td>
+    </tr>
+    <tr>
+      <td>Balancing Cost (£)</td>
+      <td>%Balancing_Cost_(£)%</td>
+    </tr>
+
+    <tr>
+      <td><strong>Change from yesterday</td>
+      <td><strong>%Change_from_yesterday_Actual%</td>
+    <tr class=bold-line>
+    </tr>
+    <tr>
+      <td>SND (thm)</td>
+      <td>%SND_(thm)%</td>
+    </tr>
+    <tr>
+      <td>NDM D0 Weather Demand Miss (thm)</td>
+      <td>%NDM_D0_Weather_Demand_Miss_(thm)%</td>
+    </tr>
+    <tr>
+      <td>DM D0 Demand Miss (thm)</td>
+      <td>%DM_D0_Demand_Miss_(thm)%</td>
+    </tr>
+    <tr>
+      <td>Total D0 Demand Miss (thm)</td>
+      <td>%Total_D0_Demand_Miss_(thm)%</td>
+    </tr>
+    <tr>
+      <td>Covid Demand Impact (thm)</td>
+      <td>%Covid_Demand_Impact_(thm)%</td>
+    </tr>
+    <tr>
+         <tr class=bold-line>
+      <td>Expected Demand (thm)</td>
+      <td>%Expected_Demand_(thm)%</td>
+    </tr>
+    <tr>
+       
+      <td>D0 purchased volume above demand (thm)</td>
+      <td>%D0_purchased_volume_above_demand_(thm)%</td>
+    </tr>
+    <tr>
+        <tr class=bold-line>
+      <td>UIG Demand (thm)</td>
+      <td>%UIG_Demand_(thm)%</td>
+    </tr>
+    <tr>
+         
+      <td>Option Cost (£)</td>
+      <td>%Option_Cost_(£)%</td>
+    </tr>
+    <tr>
+      <td>Option Payout Actual (£)</td>
+      <td>%Option_Payout_Actual_(£)%</td>
+    </tr>
+    <tr>
+      <td>Option Payout Forecast (£)</td>
+      <td>%Option_Payout_Forecast(£)%</td>
+    </tr>
+    <tr>
+      <td>Weather Option Payout Forecast (£)</td>
+      <td>%Weather_Option_Payout_Forecast_(£)%</td>
+    </tr>
+    <tr>
+      <td>Balancing cost with Option payout</td>
+      <td>%Balancing_cost_with_Option_payout%</td>
+    </tr>
+    <tr>
+        <tr class=bold-line>
+      <td><strong>Balancing cost with Option payout (p/thm)</td>
+      <td><strong>%Balancing_cost_with_Option_payout(p/thm)%</td>
+    </tr>
+    <tr>
+        
+      <td><strong>Net P&L Inc Balancing Fee Budget (0.24p/thm)</td>
+      <td><strong>%Net_P&L_Inc_Balancing_Fee_Budget_(0.24p/thm)%</td>
+    </tr>
+    <tr>
+      <td>(p/th)</td>
+      <td><strong>%(p/th)%</td>
+    </tr>
+    <tr>
+      <td><strong>Change from yesterday</td>
+      <td><strong>%Change_from_yesterday_Actual%</td>
+    </tr>
+  </table>
+
+</body>
+
+</html>"
+
+RETURN
+
+SUBSTITUTE(
+    SUBSTITUTE(
+        SUBSTITUTE(
+            SUBSTITUTE(
+                SUBSTITUTE(
+                    SUBSTITUTE(
+                        SUBSTITUTE(
+                            SUBSTITUTE(
+                                SUBSTITUTE(
+                                    SUBSTITUTE(
+                                        SUBSTITUTE(
+                                            SUBSTITUTE(
+                                                SUBSTITUTE(
+                                                    SUBSTITUTE(
+                                                        SUBSTITUTE(
+                                                            SUBSTITUTE(
+                                                                SUBSTITUTE(
+                                                                    SUBSTITUTE(
+                                                                        SUBSTITUTE(
+                                                                            SUBSTITUTE(
+                                                                                SUBSTITUTE(
+
+
+    Email_Body_Template,
+              "%Balancing_Cost_(p/thm)%",Balancing_Cost_p_thn),
+              "%Change_from_yesterday_Percentage%",Bal_Pre_Day_Change),
+              "%Balancing_Cost_(£)%",Bal_Cost_Pounds),
+              "%Change_from_yesterday_Actual%",Change_PL),
+              "%SND_(thm)%",SND),
+              "%NDM_D0_Weather_Demand_Miss_(thm)%",NDM_D0_WeatherDemand_Miss),
+              "%DM_D0_Demand_Miss_(thm)%",DM_D0_WeatherDemand_Mis),
+              "%Total_D0_Demand_Miss_(thm)%",Total_D0),
+              // Covid Period not updated in this model
+              "%Covid_Demand_Impact_(thm)%",0),
+              "%Expected_Demand_(thm)%",ExpectedDemand),
+              "%D0_purchased_volume_above_demand_(thm)%",Finance_COG_Validation),
+              "%UIG_Demand_(thm)%",UIG_Demand),
+              // Options Not included
+              "%Option_Cost_(£)%",0),
+              "%Option_Payout_Actual_(£)%",0),
+              "%Option_Payout_Forecast(£)%",Forecast_Option_Payout),
+              "%Weather_Option_Payout_Forecast_(£)%",0),
+              "%Balancing_cost_with_Option_payout%",Balancing_cost_with_Option_payout),
+              "%Balancing_cost_with_Option_payout(p/thm)%",Balancing_cost_with_Option_payout_Percentage),
+              "%Net_P&L_Inc_Balancing_Fee_Budget_(0.24p/thm)%",Net_PL_Inc_Balancing_Fee_Budget),
+              "%(p/th)%",pth),
+              "%Date%",Reporting_Date
+              //"31-Nov-2022"
+)
